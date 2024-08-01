@@ -3,6 +3,7 @@ package TestCases;
 
 
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.github.javafaker.Faker;
@@ -19,15 +20,20 @@ public class UserTest extends TestBase {
 	public CommonUtils objCommonUtils = new CommonUtils();
 	user userPayload;
 	Faker faker = new Faker();
+	Response response;
 	
+	@BeforeMethod
+    public void setUp() {
+        // Initialize userPayload with test data
+        userPayload = objCommonUtils.generateTestData();
+        // Create the user using API and store the response
+        response = userEndPoints.createUser(userPayload);
+    }
 	
 	
 @Test
 public void testCreateUser()
 {
-	userPayload=objCommonUtils.generateTestData();
-	
-	Response response = userEndPoints.createUser(userPayload);
 
 	//log response
 	response.then().log().all();
@@ -43,7 +49,8 @@ public void testCreateUser()
 @Test
 public void testGetUserData()
 {
-	Response response = userEndPoints.GetUser(this.userPayload.getUsername());
+    
+	response = userEndPoints.GetUser(this.userPayload.getUsername());
 
 	System.out.println("Read User Data.");
 	//log response
@@ -59,16 +66,14 @@ public void testGetUserData()
 @Test
 public void testUpdateUser()
 {
-	userPayload=objCommonUtils.generateTestData();
-    // Create the user using API
-	Response createResponse=userEndPoints.createUser(userPayload);
-	
-	createResponse.then().log().all();
-    Assert.assertEquals(200, createResponse.getStatusCode());
     
+	System.out.println("Get the Current User Data");
+	response = userEndPoints.GetUser(this.userPayload.getUsername());
+	//log response
+	response.then().log().all();
+	
 	userPayload.setFirstName(faker.name().username());
-	Response response = userEndPoints.UpdateUser(this.userPayload.getUsername(),userPayload);
-
+	response = userEndPoints.UpdateUser(this.userPayload.getUsername(),userPayload);
 
 	//log response
 	response.then().log().all();
@@ -79,11 +84,11 @@ public void testUpdateUser()
 
 	//Read User data to check if first name is updated 
 
-	Response responsePostUpdate = userEndPoints.GetUser(this.userPayload.getUsername());
+	response = userEndPoints.GetUser(this.userPayload.getUsername());
 
 	System.out.println("After Update User Data.");
 
-	responsePostUpdate.then().log().all();
+	response.then().log().all();
 
 
 }
@@ -92,7 +97,11 @@ public void testUpdateUser()
 public void testDeleteUser()
 {
 
-	Response response = userEndPoints.DeleteUser(this.userPayload.getUsername());
+	response = userEndPoints.GetUser(this.userPayload.getUsername());
+	
+	response.then().log().all();
+	
+	response = userEndPoints.DeleteUser(this.userPayload.getUsername());
 
 	System.out.println("Delete User Data.");
 
@@ -100,6 +109,7 @@ public void testDeleteUser()
 	response.then().log().all();
 
 
+	
 	//validation
 	Assert.assertEquals(response.getStatusCode(),200);
 
